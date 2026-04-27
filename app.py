@@ -10,7 +10,6 @@ from typing import List, Optional
 import json
 import xml.etree.ElementTree as ET
 import chromadb
-from chromadb.utils import embedding_functions
 import tempfile
 import os
 from pathlib import Path
@@ -28,9 +27,6 @@ app.add_middleware(
 
 # ChromaDB setup
 CHROMA_PATH = "/data/presets-vectordb"
-embedding_function = embedding_functions.SentenceTransformerEmbeddingFunction(
-    model_name="all-MiniLM-L6-v2"
-)
 
 # Models
 class SearchPresetsRequest(BaseModel):
@@ -66,10 +62,7 @@ async def health():
     """Verificar que la API funciona"""
     try:
         client = chromadb.PersistentClient(path=CHROMA_PATH)
-        collection = client.get_collection(
-            name="lightroom_presets",
-            embedding_function=embedding_function
-        )
+        collection = client.get_collection(name="lightroom_presets")
         total_presets = collection.count()
         
         return {
@@ -130,10 +123,7 @@ async def search_presets(request: SearchPresetsRequest):
         
         # Conectar a ChromaDB
         client = chromadb.PersistentClient(path=CHROMA_PATH)
-        collection = client.get_collection(
-            name="lightroom_presets",
-            embedding_function=embedding_function
-        )
+        collection = client.get_collection(name="lightroom_presets")
         
         # Documento de consulta
         query_doc = json.dumps(parametros_base, sort_keys=True)
@@ -282,15 +272,9 @@ async def add_presets(files: List[UploadFile] = File(...)):
         client = chromadb.PersistentClient(path=CHROMA_PATH)
         
         try:
-            collection = client.get_collection(
-                name="lightroom_presets",
-                embedding_function=embedding_function
-            )
+            collection = client.get_collection(name="lightroom_presets")
         except:
-            collection = client.create_collection(
-                name="lightroom_presets",
-                embedding_function=embedding_function
-            )
+            collection = client.create_collection(name="lightroom_presets")
         
         current_count = collection.count()
         presets_añadidos = 0
